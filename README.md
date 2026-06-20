@@ -46,6 +46,24 @@ Explore the inbox, open a sample booking, see how the draft reply is generated, 
 - **Deployment:** Hetzner VPS, Caddy reverse proxy, systemd, GitHub Actions CI/CD
 - **Security:** CSRF protection, hardened sessions, validated startup configuration, automated backups
 
+## Customization options
+
+Every deployment is tailored to the client's actual operation:
+
+- **Branding** — company name, colors, logo
+- **Location data** — real hotels, pickup points, and routes configured for your business
+- **Languages** — reply generation in the languages your customers actually use
+- **Booking platform support** — parsing tuned to the OTAs you receive bookings from (GetYourGuide, Bookeo, Viator, and others)
+- **Reply wording** — matched to your brand voice and operational requirements
+- **Ongoing maintenance** — monthly upkeep plus hourly support for new features as your business grows
+
+## Roadmap
+
+- Hotel-to-pickup point image attachments in replies, so customers can see exactly where to wait
+- Configurable multi-tenant support for managing multiple client deployments from one codebase
+- Expanded booking platform integrations
+- Customer-facing pickup point confirmation via SMS
+
 ## About this demo
 
 This version uses entirely fictional data — "Riviera Tours Demo," "Bay Harbor," and "Coral Cove" are not real places or companies. No real client or customer data is included anywhere in this repository.
