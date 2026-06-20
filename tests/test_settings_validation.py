@@ -61,6 +61,23 @@ class SettingsValidationTests(unittest.TestCase):
         self.assertEqual(settings.smtp_user, "smtp@example.com")
         self.assertEqual(settings.secret_key, "super-secret-key")
 
+    def test_demo_safety_defaults_stay_enabled(self) -> None:
+        env_values = {
+            "IMAP_HOST": "mail.example.com",
+            "IMAP_USER": "imap@example.com",
+            "IMAP_PASSWORD": "imap-password",
+            "SMTP_HOST": "mail.example.com",
+            "SMTP_USER": "smtp@example.com",
+            "SMTP_PASSWORD": "smtp-password",
+            "SECRET_KEY": "super-secret-key",
+        }
+
+        with patch.dict(os.environ, env_values, clear=True):
+            settings = Settings()
+
+        self.assertTrue(settings.safe_mode)
+        self.assertTrue(settings.demo_mode)
+
 
 if __name__ == "__main__":
     unittest.main()

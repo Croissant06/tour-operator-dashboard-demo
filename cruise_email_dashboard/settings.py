@@ -71,7 +71,7 @@ class Settings:
     fuzzy_match_threshold: int = field(default_factory=lambda: int(os.getenv("FUZZY_MATCH_THRESHOLD", "80")))
     secret_key: str = field(default_factory=lambda: _required_env("SECRET_KEY"))
     safe_mode: bool = field(default_factory=lambda: _env_bool("SAFE_MODE", "true"))
-    demo_mode: bool = field(default_factory=lambda: _env_bool("DEMO_MODE", "false"))
+    demo_mode: bool = field(default_factory=lambda: _env_bool("DEMO_MODE", "true"))
     demo_email: str = field(default_factory=lambda: os.getenv("DEMO_EMAIL", ""))
     database_url: str = field(default_factory=lambda: os.getenv("DATABASE_URL", f"sqlite:///{(BASE_DIR / 'cruise_email_dashboard' / 'app.db').as_posix()}"))
 
