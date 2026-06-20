@@ -18,8 +18,8 @@ In production this system handles:
 
 *(Screenshots below are from the production system, with all customer and staff identifying details removed.)*
 
-<!-- SCREENSHOT PLACEHOLDER: Inbox view -->
-<!-- SCREENSHOT PLACEHOLDER: Hotel management page -->
+![Inbox view](docs/screenshots/inbox.png)
+![Hotel management page](docs/screenshots/hotel-management.png)
 
 ## What it does
 
