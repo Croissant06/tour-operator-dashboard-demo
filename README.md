@@ -1,29 +1,56 @@
 # Riviera Tours Demo Dashboard
 
-Sanitized demo dashboard for tour operators who need to process booking emails, match guests to pickup stops, and prepare staff-reviewed replies.
+> 🔗 **[Live Demo](https://tour-operator-dashboard-demo-production.up.railway.app)** — Login: `demo_staff` / `demo123`
 
-## What It Does
+An automation dashboard that reads booking emails, matches customers to the correct pickup point, and generates ready-to-send replies — built for tour operators who manage logistics across multiple hotels and pickup stops.
 
-This demo app shows a fictional coastal tour operation with two towns, Bay Harbor and Coral Cove. It reads booking-style messages, matches guests to fictional hotels and pickup stops, and generates draft pickup replies for staff to review.
+## Proven in production
 
-The dashboard also includes hotel management, pickup stop management, schedules, inbox history, and demo booking generation.
+This demo is a sanitized version of a system built and deployed for a real boat tour company on the Bulgarian Black Sea coast, currently used daily by staff to handle real customer bookings.
 
-## Tech Stack
+In production this system handles:
+- 1000+ processed booking emails
+- 20+ real pickup locations across multiple towns
+- Daily use by a 3-person staff team
+- Live multi-user presence tracking (see who's viewing which email in real time)
+- Automated CI/CD deployment pipeline with test gating and nightly database backups
+- Full security hardening: CSRF protection, hardened sessions, validated configuration
 
-- FastAPI
-- SQLAlchemy
-- SQLite
-- Jinja2
-- Tailwind CSS
-- APScheduler
-- IMAP / SMTP integrations
+*(Screenshots below are from the production system, with all customer and staff identifying details removed.)*
 
-## Demo Accounts
+<!-- SCREENSHOT PLACEHOLDER: Inbox view -->
+<!-- SCREENSHOT PLACEHOLDER: Hotel management page -->
 
-- Admin: `demo_admin` / `demo123`
-- Staff: `demo_staff` / `demo123`
+## What it does
 
-## Notes
+1. **Reads booking emails** automatically from a connected mailbox (supports GetYourGuide, Bookeo, and similar OTA formats)
+2. **Extracts booking details** — customer name, hotel, date, time, party size
+3. **Matches the customer's hotel** to the nearest pickup point using fuzzy string matching
+4. **Generates a draft reply** with the correct pickup location, time, and instructions — in the right language
+5. **Staff review and send** — nothing goes out automatically, every reply is reviewed by a human first
 
-- All cities, hotels, stops, customers, and booking examples are fictional.
-- This repository is prepared for demos and does not include production deployment configuration.
+## Try it yourself
+
+Visit the [live demo](https://tour-operator-dashboard-demo-production.up.railway.app) and log in with:
+- Staff view: `demo_staff` / `demo123`
+- Admin view: `demo_admin` / `demo123`
+
+Explore the inbox, open a sample booking, see how the draft reply is generated, and check out the Hotel Management page to see how pickup points are configured.
+
+## Tech stack
+
+- **Backend:** FastAPI, SQLAlchemy, SQLite
+- **Frontend:** Jinja2, Tailwind CSS
+- **Email:** IMAP/SMTP integration with automatic polling (APScheduler)
+- **Real-time:** Server-Sent Events for live presence tracking
+- **Deployment:** Hetzner VPS, Caddy reverse proxy, systemd, GitHub Actions CI/CD
+- **Security:** CSRF protection, hardened sessions, validated startup configuration, automated backups
+
+## About this demo
+
+This version uses entirely fictional data — "Riviera Tours Demo," "Bay Harbor," and "Coral Cove" are not real places or companies. No real client or customer data is included anywhere in this repository.
+
+## Built by
+
+Presiyan Nikolov — freelance developer, building automation tools for tour and hospitality businesses.
+LinkedIn: https://www.linkedin.com/in/presiyan-nikolov-714246345/
