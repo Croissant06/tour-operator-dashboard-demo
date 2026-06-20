@@ -1,0 +1,8 @@
+Dear {customer_name},
+
+Thank you for your booking with Riviera Tours Demo.
+
+We were unable to identify your hotel from the booking details. Could you please reply with the name of your hotel or accommodation so our team can confirm the correct pickup point?
+
+Kind Regards,
+Riviera Tours Demo

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block header_title %}History & Logs{% endblock %}
+{% block header_subtitle %}Search across processed customer email history{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-col gap-3 rounded-xl bg-white p-4 shadow md:flex-row md:items-end md:justify-between">
+    <form method="get" class="flex min-w-0 flex-1 flex-col gap-3 md:max-w-4xl md:flex-[0_1_44rem] md:flex-row md:items-center">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search sender, booking number, subject, snippet, language" class="min-h-11 w-full min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <button type="submit" class="min-h-11 w-full shrink-0 rounded-md bg-indigo-600 px-4 py-2 text-white transition duration-150 hover:bg-indigo-700 sm:w-auto">Search</button>
+    </form>
+    <a href="/logs/export" class="inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-white transition duration-150 hover:bg-indigo-700 md:w-auto">Export CSV</a>
+</div>
+<div class="overflow-x-auto rounded-xl bg-white shadow">
+    <table class="min-w-full text-sm">
+        <thead class="bg-gray-50 text-left text-gray-500">
+            <tr>
+                <th class="px-4 py-3">Timestamp</th>
+                <th class="px-4 py-3">Sender</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Booking</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Hotel</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Bus Stop</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Language</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Reply Preview</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for email in rows %}
+            <tr onclick="window.location='/inbox/{{ email.id }}?return_to=logs'" class="cursor-pointer border-t even:bg-gray-50 hover:bg-indigo-50">
+                <td class="px-4 py-3">{{ email.received_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                <td class="px-4 py-3">
+                    <div class="font-medium text-gray-900">{{ email.sender_name or email.sender_email }}</div>
+                    <div class="text-xs text-gray-500">{{ email.sender_email }}</div>
+                </td>
+                <td class="hidden px-4 py-3 lg:table-cell">{{ email.booking_number or "N/A" }}</td>
+                <td class="hidden px-4 py-3 lg:table-cell">{{ email.detected_hotel.name if email.detected_hotel else "N/A" }}</td>
+                <td class="hidden px-4 py-3 lg:table-cell">{{ email.assigned_bus_stop.name if email.assigned_bus_stop else "N/A" }}</td>
+                <td class="hidden px-4 py-3 lg:table-cell">{{ email.detected_language }}</td>
+                <td class="px-4 py-3">{% include "_status_badge.html" %}</td>
+                <td class="hidden max-w-sm px-4 py-3 truncate lg:table-cell">{{ email.draft_reply }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

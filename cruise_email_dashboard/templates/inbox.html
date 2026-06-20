@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block header_title %}Inbox{% endblock %}
+{% block header_subtitle %}Showing {{ filtered_count }} emails from {{ filter_summary }}{% endblock %}
+{% block content %}
+<div class="mb-6 rounded-xl bg-white p-4 shadow text-xs md:text-sm">
+    <div class="mb-4 flex flex-wrap gap-2">
+        {% for value, label in [
+            ("today", "Today"),
+            ("last_7_days", "Last 7 days"),
+            ("last_30_days", "Last 30 days"),
+            ("all", "All"),
+        ] %}
+        <form method="get">
+            <input type="hidden" name="status" value="{{ filters.status }}">
+            <input type="hidden" name="language" value="{{ filters.language }}">
+            <button
+                type="submit"
+                name="quick_range"
+                value="{{ value }}"
+                class="min-h-11 rounded-md px-4 py-2 text-sm transition duration-150 {% if filters.quick_range == value %}bg-indigo-600 text-white hover:bg-indigo-700{% else %}bg-gray-100 text-gray-600 hover:bg-gray-200{% endif %}"
+            >
+                {{ label }}
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+    <form method="get" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <input type="hidden" name="quick_range" value="custom">
+        <select name="status" class="min-h-11 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All statuses</option>
+            {% for item in ["pending", "sent", "flagged", "manual", "cancelled"] %}
+            <option value="{{ item }}" {% if filters.status == item %}selected{% endif %}>{{ item.title() }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="start_date" value="{{ filters.start_date }}" class="min-h-11 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <input type="date" name="end_date" value="{{ filters.end_date }}" class="min-h-11 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <select name="language" class="min-h-11 rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All languages</option>
+            {% for item in languages %}
+            <option value="{{ item }}" {% if filters.language == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="min-h-11 rounded-md bg-indigo-600 px-4 py-2 text-white transition duration-150 hover:bg-indigo-700 sm:col-span-2 xl:col-span-4 xl:justify-self-start">Apply filters</button>
+    </form>
+</div>
+<div class="w-full overflow-x-auto rounded-xl bg-white shadow">
+    <table class="min-w-full table-fixed text-xs md:text-sm">
+        <thead class="bg-gray-50 text-left text-gray-500">
+            <tr>
+                <th class="hidden px-4 py-3 md:table-cell">Received</th>
+                <th class="px-4 py-3">Sender</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Subject</th>
+                <th class="hidden px-4 py-3 md:table-cell">Hotel</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Bus Stop</th>
+                <th class="hidden px-4 py-3 lg:table-cell">Pickup Time</th>
+                <th class="px-4 py-3">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for email in emails %}
+            <tr id="email-row-{{ email.id }}" onclick="window.location='/inbox/{{ email.id }}'" class="cursor-pointer border-t border-l-4 {% if email.is_new %}border-l-indigo-500{% else %}border-l-transparent{% endif %} even:bg-gray-50 hover:bg-indigo-50 {% if highlight_id == email.id %}bg-indigo-100 ring-2 ring-inset ring-indigo-300{% endif %}">
+                <td class="hidden px-4 py-3 align-top md:table-cell">{{ email.received_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                <td class="px-4 py-3 align-top">
+                    <div class="font-medium text-gray-900" title="{{ email.sender_name }}">{{ email.sender_name }}</div>
+                    <div class="max-w-[140px] truncate text-xs text-gray-500 md:max-w-[150px]" title="{{ email.sender_email }}">{{ email.sender_email }}</div>
+                    <div class="mt-1 text-xs leading-5 text-gray-500 md:hidden" title="{{ email.subject }}">{{ email.subject }}</div>
+                </td>
+                <td class="hidden px-4 py-3 align-top lg:table-cell" title="{{ email.subject }}">{{ email.subject }}</td>
+                <td class="hidden px-4 py-3 align-top md:table-cell" title="{{ email.detected_hotel.name if email.detected_hotel else 'Not matched' }}">{{ email.detected_hotel.name if email.detected_hotel else "Not matched" }}</td>
+                <td class="hidden px-4 py-3 align-top lg:table-cell">{{ email.assigned_bus_stop.name if email.assigned_bus_stop else "Not assigned" }}</td>
+                <td class="hidden px-4 py-3 align-top lg:table-cell">{{ email.pickup_time_text or "N/A" }}</td>
+                <td class="px-4 py-3 align-top">
+                    <div class="flex min-w-0 flex-col gap-2">
+                        <div class="flex items-start justify-between gap-2">
+                            {% include "_status_badge.html" %}
+                            {% if not email.is_new %}
+                            <button
+                                type="button"
+                                class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 md:h-10 md:w-10"
+                                title="Mark as unread"
+                                aria-label="Mark email {{ email.id }} as unread"
+                                data-mark-unread-id="{{ email.id }}"
+                            >
+                                <span aria-hidden="true">&#9679;</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div
+                            class="flex min-h-11 items-center"
+                            data-presence-email-id="{{ email.id }}"
+                            aria-label="Active viewers"
+                        ></div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+const inboxPresenceContainers = Array.from(document.querySelectorAll("[data-presence-email-id]"));
+const markUnreadButtons = Array.from(document.querySelectorAll("[data-mark-unread-id]"));
+let inboxPresenceCache = {};
+let inboxPresenceIntervalId = null;
+const withCsrfHeaders = window.dashboardCsrf?.withHeaders ?? ((headers) => headers);
+
+function inboxPresenceConfig() {
+    if (window.innerWidth < 768) {
+        return { maxVisible: 1, sizeClass: "h-5 w-5 text-[10px]" };
+    }
+    if (window.innerWidth < 1024) {
+        return { maxVisible: 2, sizeClass: "h-[22px] w-[22px] text-[11px]" };
+    }
+    return { maxVisible: 3, sizeClass: "h-6 w-6 text-xs" };
+}
+
+function renderInboxPresenceUsers(users) {
+    if (!users.length) {
+        return "";
+    }
+    const { maxVisible, sizeClass } = inboxPresenceConfig();
+    const visibleUsers = users.slice(0, maxVisible);
+    const overflowCount = users.length - visibleUsers.length;
+    const avatars = visibleUsers.map((user) => `
+        <div class="relative flex h-11 w-11 items-center justify-center" title="${user.username}">
+            <span class="flex ${sizeClass} items-center justify-center rounded-full ${user.color} font-semibold text-white shadow-sm">
+                ${user.initial}
+            </span>
+        </div>
+    `).join("");
+    const overflow = overflowCount > 0 ? `
+        <div class="relative flex h-11 w-11 items-center justify-center" title="${overflowCount} more viewer(s)">
+            <span class="flex ${sizeClass} items-center justify-center rounded-full bg-gray-200 font-semibold text-gray-700 shadow-sm">
+                +${overflowCount}
+            </span>
+        </div>
+    ` : "";
+    return `<div class="flex items-center -space-x-3">${avatars}${overflow}</div>`;
+}
+
+function applyInboxPresenceData() {
+    inboxPresenceContainers.forEach((container) => {
+        const emailId = container.dataset.presenceEmailId;
+        const users = inboxPresenceCache[emailId] || [];
+        container.innerHTML = renderInboxPresenceUsers(users);
+    });
+}
+
+async function refreshInboxPresence() {
+    const ids = inboxPresenceContainers.map((container) => container.dataset.presenceEmailId).filter(Boolean);
+    if (!ids.length) {
+        return;
+    }
+    try {
+        const response = await fetch(`/presence/batch?ids=${ids.join(",")}`, {
+            credentials: "same-origin",
+            headers: { "Accept": "application/json" },
+        });
+        if (!response.ok) {
+            return;
+        }
+        inboxPresenceCache = await response.json();
+        applyInboxPresenceData();
+    } catch (error) {
+        console.error("Failed to refresh inbox presence", error);
+    }
+}
+
+async function markRowUnread(button) {
+    const emailId = button.dataset.markUnreadId;
+    const row = document.getElementById(`email-row-${emailId}`);
+    if (!emailId || !row) {
+        return;
+    }
+    button.disabled = true;
+    try {
+        const response = await fetch(`/inbox/${emailId}/mark-unread`, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: withCsrfHeaders({
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            }),
+        });
+        if (!response.ok) {
+            throw new Error("Failed to mark unread");
+        }
+        const payload = await response.json();
+        if (!payload.ok) {
+            throw new Error("Failed to mark unread");
+        }
+        row.classList.remove("border-l-transparent");
+        row.classList.add("border-l-indigo-500");
+        row.querySelectorAll(`[data-mark-unread-id="${emailId}"]`).forEach((control) => control.remove());
+    } catch (error) {
+        console.error("Failed to mark row unread", error);
+        button.disabled = false;
+    }
+}
+
+window.addEventListener("resize", applyInboxPresenceData);
+document.addEventListener("dashboard:presence-changed", (event) => {
+    const emailId = String(event.detail?.email_id || "");
+    if (!emailId || !inboxPresenceContainers.some((container) => container.dataset.presenceEmailId === emailId)) {
+        return;
+    }
+    refreshInboxPresence();
+});
+
+markUnreadButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        markRowUnread(button);
+    });
+});
+
+if (inboxPresenceContainers.length) {
+    refreshInboxPresence();
+    inboxPresenceIntervalId = window.setInterval(refreshInboxPresence, 60000);
+}
+
+window.addEventListener("pagehide", () => {
+    if (inboxPresenceIntervalId) {
+        window.clearInterval(inboxPresenceIntervalId);
+        inboxPresenceIntervalId = null;
+    }
+});
+</script>
+{% endblock %}
