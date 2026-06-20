@@ -71,4 +71,5 @@ This version uses entirely fictional data — "Riviera Tours Demo," "Bay Harbor,
 ## Built by
 
 Presiyan Nikolov — freelance developer, building automation tools for tour and hospitality businesses.
+
 LinkedIn: https://www.linkedin.com/in/presiyan-nikolov-714246345/
