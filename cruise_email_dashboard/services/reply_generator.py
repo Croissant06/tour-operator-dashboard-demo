@@ -72,6 +72,19 @@ def _pickup_instructions(email_log: EmailLog, language: str) -> str:
     )
 
 
+def _pluralize(count: int, singular: str, plural: str) -> str:
+    return f"{count} {singular if count == 1 else plural}"
+
+
+def _participants_label(num_adults: int | None, num_children: int | None) -> str:
+    adults = num_adults or 0
+    children = num_children or 0
+    adults_label = _pluralize(adults, "adult", "adults")
+    if children <= 0:
+        return adults_label
+    return f"{adults_label} and {_pluralize(children, 'child', 'children')}"
+
+
 def _format_context(email_log: EmailLog) -> dict[str, str]:
     stop = email_log.assigned_bus_stop
     hotel = email_log.detected_hotel
@@ -84,6 +97,8 @@ def _format_context(email_log: EmailLog) -> dict[str, str]:
         "cruise_day": cruise_day,
         "booking_type": _booking_type_label(email_log),
         "num_adults": str(email_log.num_adults or ""),
+        "num_children": str(email_log.num_children or 0),
+        "participants": _participants_label(email_log.num_adults, email_log.num_children),
         "hotel_name": hotel.name if hotel else email_log.raw_hotel_extraction or "your hotel",
         "bus_stop_name": stop.name if stop else "",
         "bus_stop_address": stop.address if stop else "",

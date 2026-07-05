@@ -14,6 +14,8 @@ def make_email(
     city_name: str = "Bay Harbor",
     language: str = "en",
     pickup_time: str = "08:30",
+    num_adults: int = 2,
+    num_children: int = 0,
 ) -> EmailLog:
     city = City(name=city_name)
     stop = BusStop(
@@ -41,7 +43,8 @@ def make_email(
         booking_type=city_name.upper().replace(" ", "_"),
         cruise_date=date(2026, 6, 10),
         cruise_time=time(9, 0),
-        num_adults=2,
+        num_adults=num_adults,
+        num_children=num_children,
         pickup_time_text=pickup_time,
         raw_hotel_extraction=hotel.name,
     )
@@ -77,6 +80,23 @@ class OfficialPickupCopyTests(unittest.TestCase):
 
         self.assertIn("Coral Cove", reply)
         self.assertIn("the signed pickup bay beside Reefside Market", reply)
+
+    def test_participants_label_handles_adults_only(self) -> None:
+        reply, _, _ = build_reply(make_email(num_adults=1, num_children=0))
+        self.assertIn("for 1 adult.", reply)
+
+        reply, _, _ = build_reply(make_email(num_adults=2, num_children=0))
+        self.assertIn("for 2 adults.", reply)
+
+    def test_participants_label_handles_one_child(self) -> None:
+        reply, _, _ = build_reply(make_email(num_adults=2, num_children=1))
+
+        self.assertIn("for 2 adults and 1 child.", reply)
+
+    def test_participants_label_handles_multiple_children(self) -> None:
+        reply, _, _ = build_reply(make_email(num_adults=2, num_children=2))
+
+        self.assertIn("for 2 adults and 2 children.", reply)
 
     def test_unmatched_hotel_generates_english_clarification_draft(self) -> None:
         email = EmailLog(
