@@ -18,3 +18,5 @@ uvicorn.err.log
 *.log
 data/poll_state.json
 backups/
+.obsidian/
+documents/

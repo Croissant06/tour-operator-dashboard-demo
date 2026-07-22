@@ -5,8 +5,11 @@ from datetime import UTC, date, datetime, time, timedelta
 from cruise_email_dashboard.database.db import Base, engine, init_db, session_scope
 from cruise_email_dashboard.database.models import BusStop, City, EmailLog, EmailStatus, Hotel, Schedule, User, UserRole, VehicleType
 from cruise_email_dashboard.services.auth import hash_password
+from cruise_email_dashboard.services.classifier import classify_email
+from cruise_email_dashboard.services.email_poller import apply_classification_to_email
 from cruise_email_dashboard.services.reply_generator import MISSING_PICKUP_TIME_PLACEHOLDER, regenerate_email_draft
 from cruise_email_dashboard.services.scheduler import resolve_pickup_schedule
+from cruise_email_dashboard.settings import settings
 
 
 CITY_DATA = {
@@ -124,6 +127,22 @@ SAMPLE_EMAILS = [
         "language": "en",
         "status": EmailStatus.pending,
     },
+    {
+        "subject": "Bay Harbor Alias Booking",
+        "sender_email": "ethan.brooks@example.test",
+        "sender_name": "Ethan Brooks",
+        "hotel_name": "Harbor Resort",
+        "booking_type": "BAY_HARBOR",
+        "cruise_date": date(2026, 7, 13),
+        "cruise_time": time(9, 30),
+        "num_adults": 2,
+        "booking_number": "RTD-BH-1004",
+        "total_price": "180 EUR",
+        "customer_phone": "+15550100606",
+        "language": "en",
+        "status": EmailStatus.pending,
+        "match_via_classifier": True,
+    },
 ]
 
 
@@ -176,6 +195,44 @@ def seed() -> None:
         db.flush()
 
         for index, item in enumerate(SAMPLE_EMAILS, start=1):
+            if item.get("match_via_classifier"):
+                full_body = (
+                    f"Customer: {item['sender_name']}\n"
+                    f"Destination: {item['booking_type'].replace('_', ' ').title()}\n"
+                    f"Hotel: {item['hotel_name']}\n"
+                    f"Date: {item['cruise_date'].isoformat()}\n"
+                    f"Time: {item['cruise_time'].strftime('%H:%M')}\n"
+                    f"Adults: {item['num_adults']}\n"
+                    f"Children: {item.get('num_children', 0)}\n"
+                    f"Phone: {item['customer_phone']}\n"
+                    f"Booking number: {item['booking_number']}\n"
+                    f"Total price: {item['total_price']}"
+                )
+                classified = classify_email(
+                    db,
+                    subject=item["subject"],
+                    body=full_body,
+                    threshold=settings.fuzzy_match_threshold,
+                    fallback_sender=item["sender_email"],
+                    fallback_name=item["sender_name"],
+                )
+                email = EmailLog(
+                    message_id=f"<{item['booking_number']}@rivieratoursdemo.local>",
+                    received_at=datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=index * 3),
+                    sender_email=item["sender_email"],
+                    sender_name=item["sender_name"],
+                    subject=item["subject"],
+                    body_snippet=f"Demo booking for {item['sender_name']}",
+                    full_body=full_body,
+                    status=item["status"],
+                    is_new=item["status"] != EmailStatus.sent,
+                )
+                apply_classification_to_email(db, email, classified)
+                email.status = item["status"]
+                email.is_new = item["status"] != EmailStatus.sent
+                db.add(email)
+                continue
+
             detected_hotel = hotels_by_name.get(item["hotel_name"])
             bus_stop = detected_hotel.bus_stop if detected_hotel else None
             email = EmailLog(
