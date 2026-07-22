@@ -254,7 +254,7 @@ const mobilePresenceUsers = document.getElementById("mobilePresenceUsers");
 let presenceIntervalId = null;
 let currentPresenceUsers = [];
 let presenceLeaving = false;
-const withCsrfHeaders = window.dashboardCsrf?.withHeaders ?? ((headers) => headers);
+const detailWithCsrfHeaders = window.dashboardCsrf?.withHeaders ?? ((headers) => headers);
 const statusBadgeClasses = {
     pending: "bg-yellow-100 text-yellow-700 rounded-full px-2 py-0.5 text-xs",
     sent: "bg-green-100 text-green-700 rounded-full px-2 py-0.5 text-xs",
@@ -370,7 +370,7 @@ async function sendPresenceHeartbeat() {
         await fetch("/presence/heartbeat", {
             method: "POST",
             credentials: "same-origin",
-            headers: withCsrfHeaders({
+            headers: detailWithCsrfHeaders({
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             }),
@@ -396,7 +396,7 @@ function notifyPresenceLeave() {
     fetch("/presence/leave", {
         method: "POST",
         credentials: "same-origin",
-        headers: withCsrfHeaders({
+        headers: detailWithCsrfHeaders({
             "Content-Type": "application/json",
             "Accept": "application/json",
         }),
@@ -454,7 +454,7 @@ async function retrySendInPlace() {
         const response = await fetch(retrySendButton.dataset.sendUrl, {
             method: "POST",
             credentials: "same-origin",
-            headers: withCsrfHeaders({
+            headers: detailWithCsrfHeaders({
                 Accept: "application/json",
                 "X-Requested-With": "XMLHttpRequest",
             }),

@@ -87,7 +87,7 @@ const initialHotels = {{ hotels_payload | tojson }};
 const initialReprocessStatus = {{ hotel_reprocess_status | tojson }};
 let hotelTableData = [];
 let hotelReprocessTimer = null;
-const withCsrfHeaders = window.dashboardCsrf?.withHeaders ?? ((headers) => headers);
+const hotelManagementWithCsrfHeaders = window.dashboardCsrf?.withHeaders ?? ((headers) => headers);
 
 function setMessage(elementId, text, tone = "neutral") {
     const element = document.getElementById(elementId);
@@ -206,7 +206,7 @@ async function createHotelInline(form) {
         const response = await fetch(form.action, {
             method: "POST",
             credentials: "same-origin",
-            headers: withCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
+            headers: hotelManagementWithCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
             body: new FormData(form),
         });
         const payload = await response.json();
@@ -275,7 +275,7 @@ async function saveInlineEdit(button) {
         const response = await fetch(`/hotel-management/hotels/${hotelId}/bus-stop`, {
             method: "POST",
             credentials: "same-origin",
-            headers: withCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
+            headers: hotelManagementWithCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
             body: formData,
         });
         const payload = await response.json();
@@ -306,7 +306,7 @@ async function deleteHotel(button) {
         const response = await fetch(`/hotel-management/hotels/${hotelId}/delete`, {
             method: "POST",
             credentials: "same-origin",
-            headers: withCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
+            headers: hotelManagementWithCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
         });
         const payload = await response.json();
         if (!response.ok) {
@@ -385,7 +385,7 @@ async function runReprocessFlagged(button) {
         const response = await fetch("/hotel-management/reprocess-flagged", {
             method: "POST",
             credentials: "same-origin",
-            headers: withCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
+            headers: hotelManagementWithCsrfHeaders({ Accept: "application/json", "X-Requested-With": "XMLHttpRequest" }),
         });
         const payload = await response.json();
         renderReprocessStatus(payload);
